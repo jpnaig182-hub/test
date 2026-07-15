@@ -1,0 +1,170 @@
+<!-- index.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Project Bahandi - Explore Molo</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+</head>
+<body>
+
+  <!-- Top Bar / Navigation -->
+  <header>
+    <div class="logo">Project Bahandi</div>
+    <div id="user-panel">
+      <!-- Show this when GUEST -->
+      <a href="login.html" id="nav-login-btn" class="header-btn">Sign In / Register</a>
+      
+      <!-- Show this when LOGGED IN -->
+      <div id="logged-in-container" style="display: none; align-items: center; gap: 15px;">
+        <span id="logged-user">Username</span>
+        <span id="user-coins">🪙 0</span>
+        <button id="btn-logout" class="danger-small">Sign Out</button>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <!-- Left Section: Interactive Cultural Map -->
+    <section id="map-section">
+      <h2 class="section-title">Explore Molo Heritage Map</h2>
+      <div id="map"></div>
+    </section>
+
+    <!-- Right Section: Info Box & Leaderboard -->
+    <section id="sidebar">
+      
+      <!-- Map Information Pop-up Card -->
+      <div class="card" id="info-card">
+        <h3>Landmark Details</h3>
+        <p id="info-placeholder">Click on any map marker pin in Molo to discover its rich history!</p>
+        <div id="info-content" style="display: none;">
+          <h4 id="landmark-title">Molo Church</h4>
+          <p id="landmark-desc">Description of landmark goes here...</p>
+        </div>
+      </div>
+
+      <!-- Gamification Panel -->
+      <div class="card">
+        <h3>Molo Mini-Games</h3>
+        <p>Test your knowledge on Molo's history!</p>
+        <button id="btn-play-game" class="primary">Simulate Win (+20 Coins)</button>
+      </div>
+
+      <!-- Live Leaderboard -->
+      <div class="card">
+        <h3>Global Leaderboard</h3>
+        <ol id="leaderboard-list">
+          <li>Loading rankings...</li>
+        </ol>
+        <button id="btn-refresh-leaderboard" class="secondary">Refresh Rankings</button>
+      </div>
+    </section>
+  </main>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+  <script type="module">
+    import { auth, db } from "./firebase-config.js";
+    import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+    import { doc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    import { logoutUser } from "./auth.js";
+    import { awardCoins, fetchLeaderboard } from "./database.js";
+
+    // 1. LEAFLET MAP INITIALIZATION
+    const moloCoords = [10.6931, 122.5312]; 
+    const map = L.map('map').setView(moloCoords, 17);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '© OpenStreetMap contributors'
+    }).addTo(map);
+
+    // LANDMARK SEED DATA
+    const landmarks = [
+      {
+        name: "Molo Church (St. Anne Parish)",
+        latLng: [10.693116, 122.531102],
+        desc: "Constructed in 1831, this unique neo-gothic monument is famous as the 'Feminist Church' because of its exclusive alignment of 16 statues representing female saints."
+      },
+      {
+        name: "Molo Mansion (Yusay-Consing Mansion)",
+        latLng: [10.692557, 122.531818],
+        desc: "An elegant, preservation-awarded neoclassical ancestral home showcasing grand archways, vintage high ceilings, and beautiful local craftsmanship."
+      },
+      {
+        name: "Molo Plaza",
+        latLng: [10.693075, 122.531641],
+        desc: "The cultural public center of the town, featuring Classical Greek goddess statues standing proudly under towering heritage shade trees."
+      }
+    ];
+
+    landmarks.forEach(landmark => {
+      const marker = L.marker(landmark.latLng).addTo(map);
+      marker.on('click', () => {
+        document.getElementById("info-placeholder").style.display = "none";
+        document.getElementById("info-content").style.display = "block";
+        document.getElementById("landmark-title").innerText = landmark.name;
+        document.getElementById("landmark-desc").innerText = landmark.desc;
+      });
+    });
+
+    // BUTTON EVENT LISTENERS
+    document.getElementById("btn-logout").addEventListener("click", logoutUser);
+    
+    document.getElementById("btn-play-game").addEventListener("click", async () => {
+      await awardCoins(20);
+    });
+
+    document.getElementById("btn-refresh-leaderboard").addEventListener("click", updateLeaderboardUI);
+
+    // PERSISTENT AUTH STATE LISTENER (Shared across the whole site!)
+    let unsubscribeUserListener = null;
+
+    onAuthStateChanged(auth, (user) => {
+      const loginBtn = document.getElementById("nav-login-btn");
+      const loggedInContainer = document.getElementById("logged-in-container");
+
+      if (user) {
+        // User is signed in!
+        loginBtn.style.display = "none";
+        loggedInContainer.style.display = "flex";
+
+        unsubscribeUserListener = onSnapshot(doc(db, "users", user.uid), (docSnap) => {
+          if (docSnap.exists()) {
+            const data = docSnap.data();
+            document.getElementById("logged-user").innerText = data.username;
+            document.getElementById("user-coins").innerText = `🪙 ${data.coins}`;
+          }
+        });
+      } else {
+        // User is signed out!
+        if (unsubscribeUserListener) unsubscribeUserListener();
+        loginBtn.style.display = "inline-block";
+        loggedInContainer.style.display = "none";
+      }
+    });
+
+    // UPDATE LEADERBOARD RENDER
+    async function updateLeaderboardUI() {
+      const players = await fetchLeaderboard();
+      const listElement = document.getElementById("leaderboard-list");
+      listElement.innerHTML = "";
+      
+      if (players.length === 0) {
+        listElement.innerHTML = "<li>No active players yet!</li>";
+        return;
+      }
+
+      players.forEach(player => {
+        const item = document.createElement("li");
+        item.innerText = `${player.username} — 🪙 ${player.coins}`;
+        listElement.appendChild(item);
+      });
+    }
+
+    updateLeaderboardUI();
+  </script>
+</body>
+</html>
