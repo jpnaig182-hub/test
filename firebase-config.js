@@ -10,10 +10,10 @@ const firebaseConfig = {
   projectId: "projectbahandi-7149a",
   storageBucket: "projectbahandi-7149a.firebasestorage.app",
   messagingSenderId: "1017170558784",
-  appId: "1:1017170558784:web:9d3d4a73fe01571c9304a5",
-  measurementId: "G-RGQQWTLN7D"
+  appId: "1:1017170558784:web:ca1c6942f68c2fec9304a5",
+  measurementId: "G-FS77PDWKSK"
 };
-
+    
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
