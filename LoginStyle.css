@@ -1,0 +1,148 @@
+/* ==========================================================================
+   Project Bahandi - Portal Gateway Stylesheet
+   ========================================================================== */
+
+/* 1. Reset & General Setup */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Montserrat', 'Urbanist', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+/* 2. Body & Background Setup */
+body.auth-body {
+  min-height: 100vh;
+  width: 100vw;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: radial-gradient(circle at center, #1b2838 0%, #0d1117 100%);
+  color: #f1f5f9;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Decorative background light blur */
+body.auth-body::before {
+  content: "";
+  position: absolute;
+  width: 350px;
+  height: 350px;
+  background: rgba(66, 133, 244, 0.15);
+  filter: blur(120px);
+  border-radius: 50%;
+  top: 20%;
+  left: 30%;
+  pointer-events: none;
+}
+
+/* 3. Frosted Glass Container */
+.auth-container {
+  background: rgba(15, 23, 42, 0.65);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+  padding: 40px 32px;
+  width: 100%;
+  max-width: 420px;
+  text-align: center;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+  z-index: 10;
+  animation: fadeIn 0.5s ease-out;
+}
+
+/* 4. Typography & Headers */
+.auth-logo {
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: #f59e0b; /* Gold/Amber highlight */
+  margin-bottom: 8px;
+}
+
+.auth-container h2 {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: #ffffff;
+  margin-bottom: 12px;
+}
+
+.auth-container p {
+  font-size: 0.95rem;
+  color: #94a3b8;
+  line-height: 1.5;
+  margin-bottom: 32px;
+}
+
+/* 5. Button Group & Google Button */
+.button-group-vertical {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+}
+
+.google-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: 14px 20px;
+  background-color: #ffffff;
+  color: #1e293b;
+  font-size: 0.95rem;
+  font-weight: 700;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.google-btn:hover {
+  background-color: #f8fafc;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(255, 255, 255, 0.2);
+}
+
+.google-btn:active {
+  transform: translateY(0);
+}
+
+.google-icon {
+  margin-right: 10px;
+  flex-shrink: 0;
+}
+
+/* 6. Guest Navigation Link */
+.back-link {
+  margin-top: 28px;
+  font-size: 0.85rem;
+}
+
+.back-link a {
+  color: #38bdf8;
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.2s ease;
+}
+
+.back-link a:hover {
+  color: #7dd3fc;
+  text-decoration: underline;
+}
+
+/* 7. Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
