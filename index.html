@@ -15,7 +15,7 @@
     <div class="logo">Project Bahandi</div>
     <div id="user-panel">
       <!-- Show this when GUEST -->
-      <a href="login.html" id="nav-login-btn" class="header-btn">Sign In / Register</a>
+      <a href="login.html" id="nav-login-btn" class="header-btn">Sign In with Google</a>
       
       <!-- Show this when LOGGED IN -->
       <div id="logged-in-container" style="display: none; align-items: center; gap: 15px;">
@@ -119,7 +119,7 @@
 
     document.getElementById("btn-refresh-leaderboard").addEventListener("click", updateLeaderboardUI);
 
-    // PERSISTENT AUTH STATE LISTENER (Shared across the whole site!)
+    // PERSISTENT AUTH STATE LISTENER
     let unsubscribeUserListener = null;
 
     onAuthStateChanged(auth, (user) => {
@@ -131,11 +131,17 @@
         loginBtn.style.display = "none";
         loggedInContainer.style.display = "flex";
 
+        // Listen for real-time changes to the user's document in Firestore
         unsubscribeUserListener = onSnapshot(doc(db, "users", user.uid), (docSnap) => {
           if (docSnap.exists()) {
             const data = docSnap.data();
-            document.getElementById("logged-user").innerText = data.username;
-            document.getElementById("user-coins").innerText = `🪙 ${data.coins}`;
+            // Displays Firestore username or falls back to Google's account name
+            document.getElementById("logged-user").innerText = data.username || user.displayName || "Explorer";
+            document.getElementById("user-coins").innerText = `🪙 ${data.coins ?? 0}`;
+          } else {
+            // Document creation in progress during first login
+            document.getElementById("logged-user").innerText = user.displayName || "Explorer";
+            document.getElementById("user-coins").innerText = `🪙 0`;
           }
         });
       } else {
@@ -152,14 +158,14 @@
       const listElement = document.getElementById("leaderboard-list");
       listElement.innerHTML = "";
       
-      if (players.length === 0) {
+      if (!players || players.length === 0) {
         listElement.innerHTML = "<li>No active players yet!</li>";
         return;
       }
 
       players.forEach(player => {
         const item = document.createElement("li");
-        item.innerText = `${player.username} — 🪙 ${player.coins}`;
+        item.innerText = `${player.username || "Explorer"} — 🪙 ${player.coins ?? 0}`;
         listElement.appendChild(item);
       });
     }
